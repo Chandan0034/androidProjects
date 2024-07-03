@@ -37,6 +37,9 @@ dependencies:
   cupertino_icons: ^1.0.6
   csv:
   firebase_core:
+  firebase_storage:
+  http:
+  universal_io:
 
 dev_dependencies:
   flutter_test:
