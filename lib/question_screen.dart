@@ -1,11 +1,9 @@
 import 'dart:math';
-import 'dart:ui';
 
-import 'package:flutter/animation.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:csv/csv.dart';
-import 'dart:async' show Future;
+import 'dart:async' show Future, Timer;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 class QuestionScreen extends StatefulWidget {
@@ -23,75 +21,107 @@ class _QuestionScreenState extends State<QuestionScreen> {
   Color _colorContainerB=Colors.white;
   Color _colorContainerC=Colors.white;
   Color _colorContainerD=Colors.white;
-  String question='';
+  String shortQuestion='';
+  String questionHeader='';
   String option_a='';
   String option_b='';
   String option_c='';
   String option_d='';
   String answer='';
   String year='';
+  int _second=0;
+  int _minutes=0;
+  late Timer _timer;
   bool flag=false;
   Random random =Random();
   int index=1;
   int _start=1;
   String _explanation='';
   List<String> option=[];
+  DateTime date=DateTime.timestamp();
 
   @override
   void initState() {
     super.initState();
+    _startTimer();
     loadCSV();
+    print(widget.file);
   }
   _changeQuestion(){
     setState(() {
-      if(index==data.length-1){
-        index=0;
+      try{
+        if (index == data.length - 1) {
+          index = 0;
+        }
+        index = random.nextInt(data.length) + 1;
+        _start++;
+        shortQuestion = data[index][8].toString();
+        questionHeader=data[index][9].toString();
+        option_a = data[index][1].toString();
+        option_b = data[index][2].toString();
+        option_c = data[index][3].toString();
+        option_d = data[index][4].toString();
+        answer = data[index][6].toString();
+        year = data[index][5].toString();
+        _explanation = data[index][7].toString();
+        _colorContainerD = Colors.white;
+        _colorContainerA = Colors.white;
+        _colorContainerB = Colors.white;
+        _colorContainerC = Colors.white;
+        flag = false;
       }
-      index=random.nextInt(data.length)+1;
-      _start++;
-      question=data[index][0];
-      option_a=data[index][1];
-      option_b=data[index][2];
-      option_c=data[index][3];
-      option_d=data[index][4];
-      answer=data[index][6];
-      year=data[index][5];
-      _explanation=data[index][7];
-      _colorContainerD=Colors.white;
-      _colorContainerA=Colors.white;
-      _colorContainerB=Colors.white;
-      _colorContainerC=Colors.white;
-      flag=false;
+      catch(e){
+        print("Error Comes ${e.toString()}");
+      }
     });
 
   }
+  void _startTimer(){
+    _timer=Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        _second++;
+        if(_second==60){
+          _second=0;
+          _minutes++;
+        }
+      });
+    });
+  }
   Future<void> loadCSV() async {
     try{
-      final String rawCSV = await rootBundle.loadString(widget.file);
+      final String rawCSV = await rootBundle.loadString("assets/spottingError.csv");
       List<List<dynamic>> csvTable = CsvToListConverter().convert(rawCSV);
       setState(() {
         data = csvTable;
         // List<dynamic> row=data[1];
-        index=random.nextInt(data.length);
-        question=data[index][0];
-        option_a=data[index][1];
-        option_b=data[index][2];
-        option_c=data[index][3];
-        option_d=data[index][4];
-        answer=data[index][6];
-        year=data[index][5];
-        _explanation=data[index][7];
-        print(answer);
+        index=random.nextInt(data.length-1);
+        shortQuestion = data[index][8].toString();
+        questionHeader=data[index][9].toString();
+        option_a=data[index][1].toString();
+        option_b=data[index][2].toString();
+        option_c=data[index][3].toString();
+        option_d=data[index][4].toString();
+        answer=data[index][6].toString();
+        year=data[index][5].toString();
+        _explanation=data[index][7].toString();
       });
     }catch(e){
-      print(e.toString());
+      print("Errors Comes ${e.toString()}");
     }
+  }
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    super.dispose();
+    _timer.cancel();
   }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.green,
+        automaticallyImplyLeading: false,
+        leading: Center(child: Text("${_minutes<10?"0${_minutes}":_minutes}:${_second<10?"0${_second}":_second}",style: TextStyle(color: Colors.red,fontWeight: FontWeight.w500),)),
         title: Center(child: Text(widget.type)),
       ),
       body: WillPopScope(
@@ -100,8 +130,8 @@ class _QuestionScreenState extends State<QuestionScreen> {
         bool? exitConfirmed = await showDialog<bool>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Exit Confirmation'),
-            content: Text('Are you sure you want to exit?'),
+            title: const Text('Exit Confirmation'),
+            content:const Text('Are you sure you want to exit?'),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(false),
@@ -126,158 +156,324 @@ class _QuestionScreenState extends State<QuestionScreen> {
                   child: Center(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
+                        child: Card(
+                          elevation: 5,
+                          shadowColor: Colors.black,
+                          color: Colors.white,
+                          child: Column(
+                            children: <Widget>[
+                              Container(
+                                width: double.infinity,
+                                margin: EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  border: Border.all(color: Colors.black.withOpacity(.7)),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                padding:EdgeInsets.all(5),
+                                child:Center(child: Text(questionHeader,style: TextStyle(color: Colors.black.withOpacity(.7),fontSize: 14),)),
+                              ),
+                              SizedBox(height: 5,),
+                              Container(alignment: Alignment.topLeft,margin:EdgeInsets.all(5),child: Text("${_start}. "+shortQuestion,style: TextStyle(fontSize: 16,fontWeight: FontWeight.w500),)),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      alignment: AlignmentDirectional.centerEnd,
+                                        padding: EdgeInsets.all(5),
+                                        child: Text(year,style: TextStyle(fontSize: 12,fontWeight: FontWeight.w600,color: Colors.black.withOpacity(.8)),),
+                                      ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 5,),
+
+                              Row(
+                                children: [Expanded(
+                                    child: GestureDetector(
+                                      onTap: (){
+                                        _OptionAContainer("a");
+                                      },
+                                      child: Container(
+                                        margin: EdgeInsets.all(8),
+                                        padding: EdgeInsets.all(8),
+                                        child: Text("A) "+option_a,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                        decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            border: Border.all(color: Colors.black.withOpacity(.3)),
+                                            color: _colorContainerA
+                                        ),
+                                      ),
+                                    )
+                                  ),
+                                ]
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: GestureDetector(
+                                        onTap: (){
+                                          _OptionBContainer("b");
+                                        },
+                                        child: Container(
+                                          margin: EdgeInsets.all(8),
+                                          padding: EdgeInsets.all(8),
+                                          child: Text("B) "+option_b,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                          decoration: BoxDecoration(
+                                              border: Border.all(color: Colors.black.withOpacity(.3)),
+                                              borderRadius: BorderRadius.circular(10),
+                                              color:_colorContainerB
+                                          ),
+                                        ),
+                                      )
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: GestureDetector(
+                                        onTap: (){
+                                          _OptionCContainer("c");
+                                        },
+                                        child: Container(
+
+                                          margin: EdgeInsets.all(8),
+                                          padding: EdgeInsets.all(8),
+                                          child: Text("C) "+option_c,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                          decoration: BoxDecoration(
+                                              border: Border.all(color: Colors.black.withOpacity(.3)),
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: _colorContainerC
+                                          ),
+                                        ),
+                                      )
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                      child: GestureDetector(
+                                        onTap: (){
+                                          _OptionDContainer("d");
+                                        },
+                                        child: Container(
+                                          margin: EdgeInsets.all(8),
+                                          padding: EdgeInsets.all(8),
+                                          child: Text("D) "+option_d,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                          decoration: BoxDecoration(
+                                              border: Border.all(color: Colors.black.withOpacity(.3)),
+                                              borderRadius: BorderRadius.circular(10),
+                                              color: _colorContainerD
+                                          ),
+                                        ),
+                                      )
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 8,),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: (){
+                                        _changeQuestion();
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.circular(10),
+                                            color: Colors.green
+                                        ),
+                                        margin: EdgeInsets.all(8),
+                                        padding: EdgeInsets.all(10),
+                                        child: Center(child: Text("Next",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500))),
+                                      ),
+                                    ),
+                                  )
+                                ],
+                              ),
+                              flag ? Container(
+                                margin: EdgeInsets.all(10),
+                                padding: EdgeInsets.all(5),
+                                child: Center(child: Text(_explanation,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black.withOpacity(.9)),)),
+                              ):SizedBox(),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ),
+                );
+              }else{
+                return SingleChildScrollView(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Card(
+                        elevation: 5,
+                        shadowColor: Colors.black,
+                        color: Colors.white,
                         child: Column(
                           children: <Widget>[
-                            Center(child: Container(alignment: Alignment.topCenter,margin:EdgeInsets.all(10),child: Text("${_start}. "+question,style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),))),
+                            Container(
+                              width: double.infinity,
+                              margin: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.black.withOpacity(.7)),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              padding:EdgeInsets.all(5),
+                              child:Center(child: Text(questionHeader,style: TextStyle(color: Colors.black.withOpacity(.8),fontSize: 20),)),
+                            ),
+                            SizedBox(height: 5),
+                            Center(child: Container(alignment: Alignment.topCenter,margin:EdgeInsets.all(10),child: Text("${_start}. "+shortQuestion,style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),))),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 Container(
                                   margin: EdgeInsets.only(right: 15),
                                   padding: EdgeInsets.all(8),
-                                  child: Text(year,style: TextStyle(fontSize: 12,fontWeight: FontWeight.w600,color: Colors.green.withOpacity(.8)),),
+                                  child: Text(year,style: TextStyle(fontSize: 12,fontWeight: FontWeight.w600,color: Colors.black.withOpacity(.8)),),
                                 )
                               ],
                             ),
                             SizedBox(height: 5,),
-
-                            Row(
-                              children: [Expanded(
-                                  child: GestureDetector(
-                                    onTap: (){
-                                      _OptionAContainer("a");
-                                    },
-                                    child: Container(
-                                      margin: EdgeInsets.all(8),
-                                      padding: EdgeInsets.all(8),
-                                      child: Text("A) "+option_a,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                      decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(10),
-                                          border: Border.all(color: Colors.black.withOpacity(.3)),
-                                          color: _colorContainerA
+                            Container(
+                              child: Column(
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Expanded(
+                                          child: GestureDetector(
+                                            onTap: (){
+                                              _OptionAContainer("a");
+                                            },
+                                            child: Container(
+                                              margin: EdgeInsets.all(8),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text("A) "+option_a,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                              decoration: BoxDecoration(
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  border: Border.all(color: Colors.black.withOpacity(.3)),
+                                                  color: _colorContainerA
+                                              ),
+                                            ),
+                                          )
                                       ),
-                                    ),
+                                      Expanded(
+                                          child: GestureDetector(
+                                            onTap: (){
+                                              _OptionBContainer("b");
+                                            },
+                                            child: Container(
+                                              margin: EdgeInsets.all(8),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text("B) "+option_b,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(color: Colors.black.withOpacity(.3)),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  color:_colorContainerB
+                                              ),
+                                            ),
+                                          )
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Expanded(
+                                          child: GestureDetector(
+                                            onTap: (){
+                                              _OptionCContainer("c");
+                                            },
+                                            child: Container(
+
+                                              margin: EdgeInsets.all(8),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text("C) "+option_c,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(color: Colors.black.withOpacity(.3)),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: _colorContainerC
+                                              ),
+                                            ),
+                                          )
+                                      ),
+                                      Expanded(
+                                          child: GestureDetector(
+                                            onTap: (){
+                                              _OptionDContainer("d");
+                                            },
+                                            child: Container(
+                                              margin: EdgeInsets.all(8),
+                                              padding: EdgeInsets.all(8),
+                                              child: Text("D) "+option_d,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
+                                              decoration: BoxDecoration(
+                                                  border: Border.all(color: Colors.black.withOpacity(.3)),
+                                                  borderRadius: BorderRadius.circular(10),
+                                                  color: _colorContainerD
+                                              ),
+                                            ),
+                                          )
+                                      ),
+                                    ],
                                   )
-                                ),
-                              ]
+                                ],
+                              ),// Set background color
+                              // child: Column(
+                              //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              //   children: <Widget>[
+                              //     Expanded(
+                              //       child: Row(
+                              //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              //         children: <Widget>[
+                              //           Expanded(
+                              //             child: Container(
+                              //               color: Colors.blue,
+                              //               child: Center(
+                              //                 child: Text('Cell 1', style: TextStyle(color: Colors.white)),
+                              //               ),
+                              //             ),
+                              //           ),
+                              //           Expanded(
+                              //             child: Container(
+                              //               color: Colors.green,
+                              //               child: Center(
+                              //                 child: Text('Cell 2', style: TextStyle(color: Colors.white)),
+                              //               ),
+                              //             ),
+                              //           ),
+                              //         ],
+                              //       ),
+                              //     ),
+                              //     Expanded(
+                              //       child: Row(
+                              //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              //         children: <Widget>[
+                              //           Expanded(
+                              //             child: Container(
+                              //               color: Colors.orange,
+                              //               child: Center(
+                              //                 child: Text('Cell 3', style: TextStyle(color: Colors.white)),
+                              //               ),
+                              //             ),
+                              //           ),
+                              //           Expanded(
+                              //             child: Container(
+                              //               color: Colors.red,
+                              //               child: Center(
+                              //                 child: Text('Cell 4', style: TextStyle(color: Colors.white)),
+                              //               ),
+                              //             ),
+                              //           ),
+                              //         ],
+                              //       ),
+                              //     ),
+                              //   ],
+                              // ),
                             ),
-                            Row(
-                              children: [
-                                Expanded(
-                                    child: GestureDetector(
-                                      onTap: (){
-                                        _OptionBContainer("b");
-                                      },
-                                      child: Container(
-                                        margin: EdgeInsets.all(8),
-                                        padding: EdgeInsets.all(8),
-                                        child: Text("B) "+option_b,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                        decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.black.withOpacity(.3)),
-                                            borderRadius: BorderRadius.circular(10),
-                                            color:_colorContainerB
-                                        ),
-                                      ),
-                                    )
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                    child: GestureDetector(
-                                      onTap: (){
-                                        _OptionCContainer("c");
-                                      },
-                                      child: Container(
-
-                                        margin: EdgeInsets.all(8),
-                                        padding: EdgeInsets.all(8),
-                                        child: Text("C) "+option_c,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                        decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.black.withOpacity(.3)),
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: _colorContainerC
-                                        ),
-                                      ),
-                                    )
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                Expanded(
-                                    child: GestureDetector(
-                                      onTap: (){
-                                        _OptionDContainer("d");
-                                      },
-                                      child: Container(
-                                        margin: EdgeInsets.all(8),
-                                        padding: EdgeInsets.all(8),
-                                        child: Text("D) "+option_d,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                        decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.black.withOpacity(.3)),
-                                            borderRadius: BorderRadius.circular(10),
-                                            color: _colorContainerD
-                                        ),
-                                      ),
-                                    )
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: 8,),
-                            // Set background color
-                            // child: Column(
-                            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //   children: <Widget>[
-                            //     Expanded(
-                            //       child: Row(
-                            //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //         children: <Widget>[
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.blue,
-                            //               child: Center(
-                            //                 child: Text('Cell 1', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.green,
-                            //               child: Center(
-                            //                 child: Text('Cell 2', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ),
-                            //     Expanded(
-                            //       child: Row(
-                            //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //         children: <Widget>[
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.orange,
-                            //               child: Center(
-                            //                 child: Text('Cell 3', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.red,
-                            //               child: Center(
-                            //                 child: Text('Cell 4', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
                             Row(
                               children: [
                                 Expanded(
@@ -305,195 +501,6 @@ class _QuestionScreenState extends State<QuestionScreen> {
                             ):SizedBox(),
                           ],
                         ),
-                      ),
-                  ),
-                );
-              }else{
-                return SingleChildScrollView(
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: <Widget>[
-                          Text(
-                            'Questions:',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 20),
-                          Center(child: Container(alignment: Alignment.topCenter,margin:EdgeInsets.all(10),child: Text("${_start}. "+question,style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500),))),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Container(
-                                margin: EdgeInsets.only(right: 15),
-                                padding: EdgeInsets.all(8),
-                                child: Text(year,style: TextStyle(fontSize: 12,fontWeight: FontWeight.w600,color: Colors.green.withOpacity(.8)),),
-                              )
-                            ],
-                          ),
-                          SizedBox(height: 5,),
-                          Container(
-                            child: Column(
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Expanded(
-                                        child: GestureDetector(
-                                          onTap: (){
-                                            _OptionAContainer("a");
-                                          },
-                                          child: Container(
-                                            margin: EdgeInsets.all(8),
-                                            padding: EdgeInsets.all(8),
-                                            child: Text("A) "+option_a,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                            decoration: BoxDecoration(
-                                                borderRadius: BorderRadius.circular(10),
-                                                border: Border.all(color: Colors.black.withOpacity(.3)),
-                                                color: _colorContainerA
-                                            ),
-                                          ),
-                                        )
-                                    ),
-                                    Expanded(
-                                        child: GestureDetector(
-                                          onTap: (){
-                                            _OptionBContainer("b");
-                                          },
-                                          child: Container(
-                                            margin: EdgeInsets.all(8),
-                                            padding: EdgeInsets.all(8),
-                                            child: Text("B) "+option_b,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.black.withOpacity(.3)),
-                                                borderRadius: BorderRadius.circular(10),
-                                                color:_colorContainerB
-                                            ),
-                                          ),
-                                        )
-                                    ),
-                                  ],
-                                ),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Expanded(
-                                        child: GestureDetector(
-                                          onTap: (){
-                                            _OptionCContainer("c");
-                                          },
-                                          child: Container(
-
-                                            margin: EdgeInsets.all(8),
-                                            padding: EdgeInsets.all(8),
-                                            child: Text("C) "+option_c,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.black.withOpacity(.3)),
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: _colorContainerC
-                                            ),
-                                          ),
-                                        )
-                                    ),
-                                    Expanded(
-                                        child: GestureDetector(
-                                          onTap: (){
-                                            _OptionDContainer("d");
-                                          },
-                                          child: Container(
-                                            margin: EdgeInsets.all(8),
-                                            padding: EdgeInsets.all(8),
-                                            child: Text("D) "+option_d,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500)),
-                                            decoration: BoxDecoration(
-                                                border: Border.all(color: Colors.black.withOpacity(.3)),
-                                                borderRadius: BorderRadius.circular(10),
-                                                color: _colorContainerD
-                                            ),
-                                          ),
-                                        )
-                                    ),
-                                  ],
-                                )
-                              ],
-                            ),// Set background color
-                            // child: Column(
-                            //   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //   children: <Widget>[
-                            //     Expanded(
-                            //       child: Row(
-                            //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //         children: <Widget>[
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.blue,
-                            //               child: Center(
-                            //                 child: Text('Cell 1', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.green,
-                            //               child: Center(
-                            //                 child: Text('Cell 2', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ),
-                            //     Expanded(
-                            //       child: Row(
-                            //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            //         children: <Widget>[
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.orange,
-                            //               child: Center(
-                            //                 child: Text('Cell 3', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //           Expanded(
-                            //             child: Container(
-                            //               color: Colors.red,
-                            //               child: Center(
-                            //                 child: Text('Cell 4', style: TextStyle(color: Colors.white)),
-                            //               ),
-                            //             ),
-                            //           ),
-                            //         ],
-                            //       ),
-                            //     ),
-                            //   ],
-                            // ),
-                          ),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: GestureDetector(
-                                  onTap: (){
-                                    _changeQuestion();
-                                  },
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(10),
-                                        color: Colors.green
-                                    ),
-                                    margin: EdgeInsets.all(8),
-                                    padding: EdgeInsets.all(10),
-                                    child: Center(child: Text("Next",style: TextStyle(fontSize: 20,fontWeight: FontWeight.w500))),
-                                  ),
-                                ),
-                              )
-                            ],
-                          ),
-                          flag ? Container(
-                            margin: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(5),
-                            child: Center(child: Text(_explanation,style: TextStyle(fontSize: 15,fontWeight: FontWeight.w500,color: Colors.black.withOpacity(.9)),)),
-                          ):SizedBox(),
-                        ],
                       ),
                     ),
                   ),
@@ -616,3 +623,55 @@ class _QuestionScreenState extends State<QuestionScreen> {
     });
   }
 }
+// Set background color
+// child: Column(
+//   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//   children: <Widget>[
+//     Expanded(
+//       child: Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//         children: <Widget>[
+//           Expanded(
+//             child: Container(
+//               color: Colors.blue,
+//               child: Center(
+//                 child: Text('Cell 1', style: TextStyle(color: Colors.white)),
+//               ),
+//             ),
+//           ),
+//           Expanded(
+//             child: Container(
+//               color: Colors.green,
+//               child: Center(
+//                 child: Text('Cell 2', style: TextStyle(color: Colors.white)),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     ),
+//     Expanded(
+//       child: Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//         children: <Widget>[
+//           Expanded(
+//             child: Container(
+//               color: Colors.orange,
+//               child: Center(
+//                 child: Text('Cell 3', style: TextStyle(color: Colors.white)),
+//               ),
+//             ),
+//           ),
+//           Expanded(
+//             child: Container(
+//               color: Colors.red,
+//               child: Center(
+//                 child: Text('Cell 4', style: TextStyle(color: Colors.white)),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     ),
+//   ],
+// ),
