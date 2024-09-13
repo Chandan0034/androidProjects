@@ -24,42 +24,42 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
       ),
       debugShowCheckedModeBanner: false,
-      home: const MyHomePage(),
+      home: HomeScreen(),
     );
   }
 }
+//
+// class MyHomePage extends StatefulWidget {
+//   const MyHomePage({super.key});
+//
+//   @override
+//   _MyHomePageState createState() => _MyHomePageState();
+// }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
-  @override
-  _MyHomePageState createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  List<List<dynamic>> data = [];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title:const  Text('CSV Reader'),
-      ),
-      body: Center(
-        child: InkWell(
-          onTap: (){
-            Navigator.push(context, MaterialPageRoute(builder: (context)=>QuestionScreen(type: "Spotting Error",file:"SSCspottingError.csv",)));
-          },
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(10),
-              color: Colors.green.withOpacity(.7)
-            ),
-            child: const Text("Spotting Error"),
-          ),
-        ),
-      ),
-    );
-  }
-}
+// class _MyHomePageState extends State<MyHomePage> {
+//   List<List<dynamic>> data = [];
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title:const  Text('CSV Reader'),
+//       ),
+//       body: Center(
+//         child: InkWell(
+//           onTap: (){
+//             Navigator.push(context, MaterialPageRoute(builder: (context)=>QuestionScreen(type: "spottingError")));
+//           },
+//           child: Container(
+//             padding: const EdgeInsets.all(10),
+//             decoration: BoxDecoration(
+//               borderRadius: BorderRadius.circular(10),
+//               color: Colors.green.withOpacity(.7)
+//             ),
+//             child: const Text("Spotting Error"),
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

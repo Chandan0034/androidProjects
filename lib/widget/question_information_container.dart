@@ -39,7 +39,7 @@ class _QuestionInformationState extends State<QuestionInformation> {
                 color: Colors.white,
                 child: widget.isLoading ? Column(
                   children: <Widget>[
-                    Container(
+                    widget.question_header==""? Container(child: Text(""),): Container(
                       width: double.infinity,
                       margin: EdgeInsets.all(5),
                       decoration: BoxDecoration(
@@ -47,10 +47,10 @@ class _QuestionInformationState extends State<QuestionInformation> {
                         borderRadius: BorderRadius.circular(5),
                       ),
                       padding:EdgeInsets.all(5),
-                      child:Center(child: Text(widget.question_header,style: TextStyle(color: Colors.black.withOpacity(.7),fontSize: 14),)),
+                      child:Center(child: Text(widget.question_header ,style: TextStyle(color: Colors.black.withOpacity(.7),fontSize: 14),)),
                     ),
                     SizedBox(height: 5,),
-                    Container(alignment: Alignment.topLeft,margin:EdgeInsets.all(5),child: Text("${widget.start}. "+widget.shortQuestion,style: TextStyle(fontSize: 16,fontWeight: FontWeight.w500),)),
+                    Container(alignment: Alignment.topLeft,margin:EdgeInsets.all(5),child: Text("${widget.start}. "+widget.shortQuestion+".",style: TextStyle(fontSize: 16,fontWeight: FontWeight.w500),)),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [

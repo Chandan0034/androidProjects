@@ -8,8 +8,8 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:sscprevious/widget/question_information_container.dart';
 class QuestionScreen extends StatefulWidget {
   String type;
-  String file;
-   QuestionScreen({super.key,required this.type,required this.file});
+  String name;
+   QuestionScreen({super.key,required this.type,required this.name});
 
   @override
   State<QuestionScreen> createState() => _QuestionScreenState();
@@ -40,13 +40,11 @@ class _QuestionScreenState extends State<QuestionScreen> {
   String _explanation='';
   List<String> option=[];
   DateTime date=DateTime.timestamp();
-
   @override
   void initState() {
     super.initState();
     loadCSV();
     // getQuestionFile();
-    print(widget.file);
   }
   _changeQuestion(int a){
     setState(() {
@@ -121,7 +119,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
   Future<void> loadCSV() async {
     try{
       FirebaseStorage storage=FirebaseStorage.instance;
-      Reference ref=storage.ref().child("spottingError.csv");
+      Reference ref=storage.ref().child("${widget.type}.csv");
       String downloadUrl=await ref.getDownloadURL();
       final response= await http.get(Uri.parse(downloadUrl));
       setState(() {
@@ -168,7 +166,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
         backgroundColor: Colors.green,
         automaticallyImplyLeading: false,
         leading: Center(child: Text("${_minutes<10?"0${_minutes}":_minutes}:${_second<10?"0${_second}":_second}",style: TextStyle(color: Colors.red,fontWeight: FontWeight.w500),)),
-        title: Center(child: Text(widget.type)),
+        title: Center(child: Text(widget.name)),
       ),
       bottomNavigationBar: BottomAppBar(
         color: Colors.green,
@@ -201,6 +199,7 @@ class _QuestionScreenState extends State<QuestionScreen> {
           ),
         ),
       ),
+      floatingActionButton: flag ? FloatingActionButton(onPressed: (){},child: Icon(Icons.circle_outlined,size: 40,),):Container(),
       body: WillPopScope(
         onWillPop:  () async {
       // Show a dialog when back button is pressed
